@@ -8,6 +8,7 @@ from graphrag_sdk.fixtures.regex import *
 
 logger = logging.getLogger(__name__)
 
+
 class AttributeType(Enum):
     """
     Represents the types of attributes in the system.
@@ -35,15 +36,21 @@ class AttributeType(Enum):
         Raises:
             ValueError: If the provided attribute type is invalid.
         """
+        # Check if its full namespace and remove
+        if "." in txt:
+            txt = txt.split(".")[-1]
+
         # Graph representation of the attribute type
+
         normalized_txt = txt.lower()
-        
+
         # Find the matching attribute type
         if normalized_txt in _SYNONYMS:
             return _SYNONYMS[normalized_txt]
-        
+
         raise ValueError(f"Invalid attribute type: {txt}")
-    
+
+
 # Mapping of string representations to AttributeType enum members.
 _SYNONYMS = {
     "string": AttributeType.STRING,
@@ -56,6 +63,7 @@ _SYNONYMS = {
     "map": AttributeType.MAP,
     "vectorf32": AttributeType.VECTOR,
 }
+
 
 class Attribute:
     """ Represents an attribute of an entity or relation in the ontology.
@@ -168,4 +176,4 @@ class Attribute:
         Returns:
             str: A string representation of the Attribute object.
         """
-        return f"{self.name}: \"{self.type}{'!' if self.unique else ''}{'*' if self.required else ''}\""
+        return f"{self.name}: \"{self.type.value}{'!' if self.unique else ''}{'*' if self.required else ''}\""
