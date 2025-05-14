@@ -26,13 +26,14 @@ class OpenAiGenerativeModel(GenerativeModel):
     ):
         """
         Initialize the OpenAiGenerativeModel with required parameters.
-        
+
         Args:
             model_name (str): Name of the OpenAI model.
             generation_config (Optional[GenerativeModelConfig]): Configuration settings for generation.
             system_instruction (Optional[str]): System-level instruction for the model.
         """
         self.model_name = model_name
+        self._history = []
         self.generation_config = generation_config or GenerativeModelConfig()
         self.system_instruction = system_instruction
         if not os.getenv("OPENAI_API_KEY"):
@@ -42,7 +43,7 @@ class OpenAiGenerativeModel(GenerativeModel):
     def start_chat(self, system_instruction: Optional[str] = None) -> GenerativeModelChatSession:
         """
         Start a new chat session.
-            
+
         Args:
             system_instruction (Optional[str]): Optional system instruction to guide the chat session.
         Returns:
@@ -67,11 +68,11 @@ class OpenAiGenerativeModel(GenerativeModel):
     def to_json(self) -> dict:
         """
         Serialize the model's configuration and state to JSON format.
-        
+
         Returns:
             dict: The serialized JSON data.
         """
-        
+
         return {
             "model_name": self.model_name,
             "generation_config": self.generation_config.to_json(),
@@ -82,10 +83,10 @@ class OpenAiGenerativeModel(GenerativeModel):
     def from_json(json: dict) -> "GenerativeModel":
         """
         Deserialize a JSON object to create an instance of OpenAiGenerativeModel.
-        
+
         Args:
             json (dict): The serialized JSON data.
-            
+
         Returns:
             GenerativeModel: A new instance of the model.
         """
@@ -102,7 +103,7 @@ class OpenAiChatSession(GenerativeModelChatSession):
     """
     A chat session for interacting with the OpenAI model, maintaining conversation history.
     """
-    
+
     def __init__(self, model: OpenAiGenerativeModel, system_instruction: Optional[str] = None) -> None:
         """
         Initialize the chat session and set up the conversation history.
@@ -136,38 +137,38 @@ class OpenAiChatSession(GenerativeModelChatSession):
         content = self._model.parse_generate_content_response(response)
         self._chat_history.append({"role": "assistant", "content": content.text})
         return content
-    
+
     def get_chat_history(self) -> list[dict]:
         """
         Retrieve the conversation history for the current chat session.
-        
+
         Returns:
             list[dict]: The chat session's conversation history.
         """
         return self._chat_history.copy()
-    
+
     def _adjust_generation_config(self, output_method: OutputMethod):
         """
         Adjust the generation configuration based on the output method.
-        
+
         Args:
             output_method (OutputMethod): The desired output method (e.g., default or JSON).
-            
+
         Returns:
             dict: The configuration settings for generation.
         """
         config = self._model.generation_config.to_json()
         if output_method == OutputMethod.JSON:
             config['temperature'] = 0
-            config['response_format'] = { "type": "json_object" }
-        
+            config['response_format'] = {"type": "json_object"}
+
         return config
-    
+
     def delete_last_message(self):
         """
         Deletes the last message exchange (user message and assistant response) from the chat history.
         Preserves the system message if present.
-        
+
         Example:
             Before:
             [
@@ -190,7 +191,7 @@ class OpenAiChatSession(GenerativeModelChatSession):
         else:
             # Reset to initial state with just system message if present
             self._history = (
-            [{"role": "system", "content": self._model.system_instruction}]
-            if self._model.system_instruction is not None
-            else []
-        )
+                [{"role": "system", "content": self._model.system_instruction}]
+                if self._model.system_instruction is not None
+                else []
+            )
