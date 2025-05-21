@@ -33,7 +33,6 @@ class OpenAiGenerativeModel(GenerativeModel):
             system_instruction (Optional[str]): System-level instruction for the model.
         """
         self.model_name = model_name
-        self._history = []
         self.generation_config = generation_config or GenerativeModelConfig()
         self.system_instruction = system_instruction
         if not os.getenv("OPENAI_API_KEY"):
@@ -185,12 +184,12 @@ class OpenAiChatSession(GenerativeModelChatSession):
         """
         # Keep at least the system message if present
         min_length = 1 if self._model.system_instruction else 0
-        if len(self._history) - 2 >= min_length:
-            self._history.pop()
-            self._history.pop()
+        if len(self._chat_history) - 2 >= min_length:
+            self._chat_history.pop()
+            self._chat_history.pop()
         else:
             # Reset to initial state with just system message if present
-            self._history = (
+            self._chat_history = (
                 [{"role": "system", "content": self._model.system_instruction}]
                 if self._model.system_instruction is not None
                 else []
